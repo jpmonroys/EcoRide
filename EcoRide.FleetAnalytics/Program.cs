@@ -10,6 +10,11 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.ConfigureEndpointDefaults(endpoint =>
+                endpoint.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+        });
 
         builder.Services.AddGrpc(options =>
         {
@@ -34,7 +39,6 @@ public class Program
         app.MapDefaultEndpoints();
         if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
-        app.UseHttpsRedirection();
         app.UseAuthorization();
 
         app.MapGrpcService<FleetServiceImpl>();

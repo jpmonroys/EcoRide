@@ -93,6 +93,66 @@ dotnet run --project EcoRide.AppHost
    - `trip-api`.
    - `fleet-analytics`.
 
+## Ejecutar con Docker Compose
+
+La solución Docker expone:
+
+- Trip API: `http://localhost:8081`
+- Fleet Analytics: `https://localhost:8082`
+- SQL Server: `localhost,1434`
+- Redis: `localhost:6379`
+- MongoDB: `localhost:27018`
+
+Construir y levantar:
+
+```powershell
+docker compose build
+docker compose up -d
+docker compose ps
+```
+
+Detener sin eliminar datos:
+
+```powershell
+docker compose stop
+```
+
+Detener y eliminar contenedores y red:
+
+```powershell
+docker compose down
+```
+
+Eliminar también los volúmenes persistentes:
+
+```powershell
+docker compose down -v
+```
+
+### Prueba Docker
+
+Iniciar viaje:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri 'http://localhost:8081/trips/start' -ContentType 'application/json' -Body '{"vehicleId":"scooter-docker","latitude":19.4326,"longitude":-99.1332}'
+```
+
+Registrar telemetría HTTPS:
+
+```powershell
+[Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+$body = '{"vehicleId":"scooter-docker","batteryPercentage":7,"gForce":2.6,"capturedAt":"2026-11-27T02:40:00Z","locked":false}'
+Invoke-WebRequest -UseBasicParsing -Method Post -Uri 'https://localhost:8082/telemetry' -ContentType 'application/json' -Body $body
+```
+
+Consultar diagnóstico:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing -Uri 'https://localhost:8082/telemetry/scooter-docker/diagnosis'
+```
+
+El certificado de Docker es exclusivamente de desarrollo. Para producción reemplazarlo por un certificado emitido por una autoridad o certificados administrados por el servicio cloud.
+
 ## Endpoints
 
 ### Trip API
@@ -219,3 +279,12 @@ Detalles completos y recomendaciones en [`DOCUMENTACION_TECNICA.md`](DOCUMENTACI
 ## Licencia
 
 Proyecto educativo. Asegurar revisar licencias de dependencias antes de uso comercial.
+
+Antes de levantar Docker, generar el certificado local:
+
+```powershell
+New-Item -ItemType Directory -Force certs
+dotnet dev-certs https -ep certs/ecoride.pfx -p 'EcoRideCert123!'
+```
+
+El archivo PFX queda excluido de Git y no debe compartirse ni desplegarse en producción.

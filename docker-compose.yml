@@ -1,0 +1,98 @@
+name: ecoride
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "EcoRide!2026"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1434:1433"
+    volumes:
+      - ecoride-sql:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'EcoRide!2026' -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - ecoride-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mongo:
+    image: mongo:8
+    ports:
+      - "27018:27017"
+    volumes:
+      - ecoride-mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  fleet-analytics:
+    build:
+      context: .
+      dockerfile: EcoRide.FleetAnalytics/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "https://+:8080"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/ecoride.pfx"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "EcoRideCert123!"
+      MONGO_CONNECTION_STRING: "mongodb://mongo:27017"
+      GRPC_API_TOKEN: "eco-ride-demo-token"
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./certs/ecoride.pfx:/https/ecoride.pfx:ro
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "https://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  trip-api:
+    build:
+      context: .
+      dockerfile: EcoRide.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__ecoride: "Server=sqlserver,1433;Database=EcoRide;User Id=sa;Password=EcoRide!2026;TrustServerCertificate=true"
+      FLEET_GRPC_URL: "https://fleet-analytics:8080"
+      GRPC_API_TOKEN: "eco-ride-demo-token"
+    ports:
+      - "8081:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      fleet-analytics:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "https://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ecoride-sql:
+  ecoride-redis:
+  ecoride-mongo:

@@ -8,3 +8,6 @@
 .idea/
 .env
 appsettings.*.Local.json
+certs/*.pfx
+certs/*.pem
+certs/*.key

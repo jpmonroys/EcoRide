@@ -24,6 +24,9 @@ public class Program
         builder.Services.AddGrpcClient<FleetService.FleetServiceClient>(options =>
         {
             options.Address = new Uri(builder.Configuration["FLEET_GRPC_URL"] ?? "https://localhost:7188");
+        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
         });
 
         builder.Services.AddAuthorization();
@@ -31,10 +34,15 @@ public class Program
 
         var app = builder.Build();
 
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<EcoRideDbContext>();
+            db.Database.Migrate();
+        }
+
         app.MapDefaultEndpoints();
         if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
-        app.UseHttpsRedirection();
         app.UseAuthorization();
 
         app.MapPost("/trips/start", async (

@@ -338,3 +338,55 @@ El canal binario gRPC reduce sobrecarga en comunicaciones internas críticas y m
 .NET Aspire reduce el costo operativo al declarar contenedores y servicios en C#, proporcionar descubrimiento automático y centralizar salud, métricas, trazas y logs. Así se evita mantener scripts dispersos y se detectan cuellos de botella de forma temprana.
 
 Las pruebas unitarias y migraciones controlan cambios antes de producción. Juntas permiten escalar globalmente con menor retrabajo, despliegues independientes y mayor estabilidad.
+
+## Dockerización
+
+Los microservicios cuentan con Dockerfiles multietapa usando SDK y runtime oficiales de .NET 10. Docker Compose agrega SQL Server, Redis, MongoDB, Fleet Analytics y Trip API en una red privada.
+
+### Construcción
+
+```powershell
+docker compose build
+docker compose up -d
+docker compose ps
+```
+
+### Puertos Docker
+
+- Trip API: `8081 -> 8080`.
+- Fleet Analytics: `8082 -> 8080`.
+- SQL Server: `1434 -> 1433`.
+- Redis: `6379 -> 6379`.
+- MongoDB: `27018 -> 27017`.
+
+### Persistencia
+
+Los volúmenes Docker mantienen SQL Server, Redis y MongoDB entre reinicios:
+
+- `ecoride-sql`.
+- `ecoride-redis`.
+- `ecoride-mongo`.
+
+### Migración automática
+
+Trip API ejecuta `db.Database.Migrate()` antes de publicar sus endpoints. SQL Server debe estar disponible; Compose usa una comprobación de salud para asegurar el arranque previo.
+
+### gRPC TLS
+
+Fleet Analytics expone HTTPS con un certificado PFX de desarrollo montado desde `certs/ecoride.pfx`. El cliente Trip API confía el certificado mediante validación configurable para la ejecución Docker local.
+
+Esta configuración es válida para laboratorio. En producción:
+
+- Reemplazar el PFX por certificados emitidos y protegidos.
+- No desactivar la validación de certificados.
+- Configurar SAN para el nombre DNS real del servicio.
+- Administrar tokens mediante secretos del orquestador.
+
+### Evidencia Docker
+
+- Captura de `docker compose ps` con los cinco servicios saludables.
+- Captura de las imágenes construidas.
+- Captura del inicio y finalización de viaje en la API.
+- Captura de logs donde aparece `Metadata Authentication Successful`.
+- Captura de logs donde aparece `Vehicle ... locked in MongoDB`.
+- Captura del diagnóstico HTTPS de telemetría.
