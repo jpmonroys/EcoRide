@@ -1,0 +1,6 @@
+@EcoRide.FleetAnalytics_HostAddress = http://localhost:5073
+
+GET {{EcoRide.FleetAnalytics_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

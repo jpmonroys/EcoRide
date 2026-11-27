@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>99921800-3740-4402-a2b5-a82a8d61765a</UserSecretsId>
+    <AspireCliPath>C:\Users\jpmonroy.G900603NT440\.dotnet\tools\aspire.cmd</AspireCliPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="17.0.0" />
+    <PackageReference Include="Aspire.Hosting.Dotnet" Version="17.0.0" />
+    <PackageReference Include="Aspire.Hosting.SqlServer" Version="17.0.0" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="17.0.0" />
+    <PackageReference Include="Aspire.Hosting.MongoDB" Version="17.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EcoRide.Api\EcoRide.Api.csproj" />
+    <ProjectReference Include="..\EcoRide.FleetAnalytics\EcoRide.FleetAnalytics.csproj" />
+    <ProjectReference Include="..\EcoRide.ServiceDefaults\EcoRide.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

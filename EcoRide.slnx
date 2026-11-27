@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="EcoRide.Api/EcoRide.Api.csproj" />
+  <Project Path="EcoRide.AppHost/EcoRide.AppHost.csproj" />
+  <Project Path="EcoRide.Application/EcoRide.Application.csproj" />
+  <Project Path="EcoRide.Domain.Tests/EcoRide.Domain.Tests.csproj" />
+  <Project Path="EcoRide.Domain/EcoRide.Domain.csproj" />
+  <Project Path="EcoRide.FleetAnalytics/EcoRide.FleetAnalytics.csproj" />
+  <Project Path="EcoRide.Infrastructure/EcoRide.Infrastructure.csproj" />
+  <Project Path="EcoRide.ServiceDefaults/EcoRide.ServiceDefaults.csproj" />
+</Solution>
